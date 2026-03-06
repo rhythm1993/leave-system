@@ -1,0 +1,78 @@
+export const mockRoles = [
+  { code: 'SYSTEM_ADMIN', name: '系统管理员' },
+  { code: 'HR', name: 'HR' },
+  { code: 'STAFF', name: '员工' },
+];
+
+export const mockUsers = [
+  {
+    id: 'user-001',
+    username: 'admin',
+    password: 'password123',
+    fullName: '系统管理员',
+    email: 'admin@company.com',
+    phone: '13800138001',
+    department: 'IT部',
+    role: 'SYSTEM_ADMIN',
+    status: 'active',
+  },
+  {
+    id: 'user-002',
+    username: 'wenny',
+    password: 'password123',
+    fullName: 'Wenny',
+    email: 'wenny@company.com',
+    phone: '13800138002',
+    department: '人力资源部',
+    role: 'HR',
+    status: 'active',
+  },
+  {
+    id: 'user-003',
+    username: 'alex',
+    password: 'password123',
+    fullName: 'Alex',
+    email: 'alex@company.com',
+    phone: '13800138003',
+    department: '研发部',
+    role: 'STAFF',
+    status: 'active',
+  },
+  {
+    id: 'user-004',
+    username: 'lisa',
+    password: 'password123',
+    fullName: 'Lisa',
+    email: 'lisa@company.com',
+    phone: '13800138004',
+    department: '研发部',
+    role: 'STAFF',
+    status: 'active',
+  },
+  {
+    id: 'user-005',
+    username: 'tom',
+    password: 'password123',
+    fullName: 'Tom',
+    email: 'tom@company.com',
+    phone: '13800138005',
+    department: '产品部',
+    role: 'STAFF',
+    status: 'active',
+  },
+];
+
+export const mockLeaveApplications = [
+  {
+    id: 'app-001',
+    applicationNo: 'LA-20260305-001',
+    applicantId: 'user-003',
+    leaveType: 'annual',
+    startDate: '2026-03-10',
+    endDate: '2026-03-12',
+    days: 3,
+    reason: '回家探亲',
+    status: 'approved',
+    createdAt: '2026-03-01T09:00:00Z',
+  },
+];
