@@ -34,7 +34,7 @@ export const Users: React.FC = () => {
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
   const [form] = Form.useForm();
 
-  // 获取用户列表
+  // Fetch user list
   const fetchUsers = async (page = 1, pageSize = 10) => {
     setLoading(true);
     try {
@@ -52,18 +52,18 @@ export const Users: React.FC = () => {
         });
       }
     } catch (error) {
-      message.error('获取用户列表失败');
+      message.error('Failed to get user list');
     } finally {
       setLoading(false);
     }
   };
 
-  // 首次加载
+  // Initial load
   useEffect(() => {
     fetchUsers();
   }, []);
 
-  // 搜索时重新加载
+  // Reload on search
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchUsers(1);
@@ -92,17 +92,17 @@ export const Users: React.FC = () => {
 
   const handleDelete = (record: any) => {
     Modal.confirm({
-      title: '确认删除',
-      content: `确定要删除用户 "${record.fullName}" 吗？`,
+      title: 'Confirm Deletion',
+      content: `Are you sure you want to delete user "${record.fullName}"?`,
       onOk: async () => {
         try {
           const response: any = await userApi.deleteUser(record.id);
           if (response.code === 200) {
-            message.success('删除成功');
+            message.success('Deleted successfully');
             fetchUsers(pagination.current);
           }
         } catch (error) {
-          message.error('删除失败');
+          message.error('Deletion failed');
         }
       },
     });
@@ -111,35 +111,35 @@ export const Users: React.FC = () => {
   const handleSubmit = async (values: any) => {
     try {
       if (editingUser) {
-        // 更新用户
+        // Update user
         const response: any = await userApi.updateUser(editingUser.id, values);
         if (response.code === 200) {
-          message.success('更新成功');
+          message.success('Updated successfully');
           setIsModalVisible(false);
           fetchUsers(pagination.current);
         }
       } else {
-        // 创建用户
+        // Create user
         const response: any = await userApi.createUser({
           ...values,
-          password: 'password123', // 默认密码
+          password: 'password123', // Default password
         });
         if (response.code === 201) {
-          message.success('创建成功');
+          message.success('Created successfully');
           setIsModalVisible(false);
           fetchUsers(1);
         }
       }
     } catch (error: any) {
-      message.error(error.response?.data?.message || '操作失败');
+      message.error(error.response?.data?.message || 'Operation failed');
     }
   };
 
   const getRoleTag = (roleCode: string) => {
     const config: Record<string, { color: string; text: string }> = {
-      SYSTEM_ADMIN: { color: 'red', text: '系统管理员' },
+      SYSTEM_ADMIN: { color: 'red', text: 'System Admin' },
       HR: { color: 'blue', text: 'HR' },
-      STAFF: { color: 'green', text: '员工' },
+      STAFF: { color: 'green', text: 'Staff' },
     };
     const { color, text } = config[roleCode] || { color: 'default', text: roleCode };
     return <Tag color={color}>{text}</Tag>;
@@ -147,43 +147,43 @@ export const Users: React.FC = () => {
 
   const columns = [
     {
-      title: '用户名',
+      title: 'Username',
       dataIndex: 'username',
       key: 'username',
     },
     {
-      title: '姓名',
+      title: 'Full Name',
       dataIndex: 'fullName',
       key: 'fullName',
     },
     {
-      title: '邮箱',
+      title: 'Email',
       dataIndex: 'email',
       key: 'email',
     },
     {
-      title: '部门',
+      title: 'Department',
       dataIndex: 'department',
       key: 'department',
     },
     {
-      title: '角色',
+      title: 'Role',
       dataIndex: 'role',
       key: 'role',
       render: getRoleTag,
     },
     {
-      title: '状态',
+      title: 'Status',
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => (
         <Tag color={status === 'active' ? 'success' : 'default'}>
-          {status === 'active' ? '正常' : '禁用'}
+          {status === 'active' ? 'Active' : 'Inactive'}
         </Tag>
       ),
     },
     {
-      title: '操作',
+      title: 'Actions',
       key: 'action',
       render: (_: any, record: any) => (
         <Space>
@@ -193,7 +193,7 @@ export const Users: React.FC = () => {
             size="small"
             onClick={() => handleEdit(record)}
           >
-            编辑
+            Edit
           </Button>
           <Button
             danger
@@ -201,7 +201,7 @@ export const Users: React.FC = () => {
             size="small"
             onClick={() => handleDelete(record)}
           >
-            删除
+            Delete
           </Button>
         </Space>
       ),
@@ -212,19 +212,19 @@ export const Users: React.FC = () => {
     <div>
       <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
         <Col>
-          <Title level={4}>用户管理</Title>
+          <Title level={4}>User Management</Title>
         </Col>
         <Col>
           <Space>
             <Input
-              placeholder="搜索用户..."
+              placeholder="Search users..."
               prefix={<SearchOutlined />}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               style={{ width: 250 }}
             />
             <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-              新增用户
+              Add User
             </Button>
           </Space>
         </Col>
@@ -244,7 +244,7 @@ export const Users: React.FC = () => {
       </Card>
 
       <Modal
-        title={editingUser ? '编辑用户' : '新增用户'}
+        title={editingUser ? 'Edit User' : 'Add User'}
         open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         onOk={() => form.submit()}
@@ -261,8 +261,8 @@ export const Users: React.FC = () => {
               <Col span={12}>
                 <Form.Item
                   name="username"
-                  label="用户名"
-                  rules={[{ required: true, message: '请输入用户名' }]}
+                  label="Username"
+                  rules={[{ required: true, message: 'Please enter username' }]}
                 >
                   <Input />
                 </Form.Item>
@@ -270,7 +270,7 @@ export const Users: React.FC = () => {
               <Col span={12}>
                 <Form.Item
                   name="password"
-                  label="初始密码"
+                  label="Initial Password"
                   initialValue="password123"
                 >
                   <Input disabled />
@@ -283,8 +283,8 @@ export const Users: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="fullName"
-                label="姓名"
-                rules={[{ required: true, message: '请输入姓名' }]}
+                label="Full Name"
+                rules={[{ required: true, message: 'Please enter full name' }]}
               >
                 <Input />
               </Form.Item>
@@ -292,10 +292,10 @@ export const Users: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="email"
-                label="邮箱"
+                label="Email"
                 rules={[
-                  { required: true, message: '请输入邮箱' },
-                  { type: 'email', message: '请输入有效的邮箱地址' },
+                  { required: true, message: 'Please enter email' },
+                  { type: 'email', message: 'Please enter a valid email address' },
                 ]}
               >
                 <Input />
@@ -307,7 +307,7 @@ export const Users: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="phone"
-                label="电话"
+                label="Phone"
               >
                 <Input />
               </Form.Item>
@@ -315,7 +315,7 @@ export const Users: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="department"
-                label="部门"
+                label="Department"
               >
                 <Input />
               </Form.Item>
@@ -326,25 +326,25 @@ export const Users: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="role"
-                label="角色"
-                rules={[{ required: true, message: '请选择角色' }]}
+                label="Role"
+                rules={[{ required: true, message: 'Please select role' }]}
               >
                 <Select>
-                  <Option value="SYSTEM_ADMIN">系统管理员</Option>
+                  <Option value="SYSTEM_ADMIN">System Admin</Option>
                   <Option value="HR">HR</Option>
-                  <Option value="STAFF">员工</Option>
+                  <Option value="STAFF">Staff</Option>
                 </Select>
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item
                 name="status"
-                label="状态"
-                rules={[{ required: true, message: '请选择状态' }]}
+                label="Status"
+                rules={[{ required: true, message: 'Please select status' }]}
               >
                 <Select>
-                  <Option value="active">正常</Option>
-                  <Option value="inactive">禁用</Option>
+                  <Option value="active">Active</Option>
+                  <Option value="inactive">Inactive</Option>
                 </Select>
               </Form.Item>
             </Col>

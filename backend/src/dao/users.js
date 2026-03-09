@@ -5,131 +5,135 @@ export const UserDAO = {
   // 获取所有用户
   findAll: (options = {}) => {
     const db = getDb();
-    let sql = 'SELECT * FROM users WHERE 1=1';
-    const params = [];
+    let users = [...db.users];
 
     if (options.keyword) {
-      sql += ` AND (username LIKE ? OR full_name LIKE ? OR email LIKE ?)`;
-      const keyword = `%${options.keyword}%`;
-      params.push(keyword, keyword, keyword);
+      const keyword = options.keyword.toLowerCase();
+      users = users.filter(u =>
+        u.username.toLowerCase().includes(keyword) ||
+        u.full_name.toLowerCase().includes(keyword) ||
+        u.email.toLowerCase().includes(keyword)
+      );
     }
 
     if (options.role) {
-      sql += ` AND role = ?`;
-      params.push(options.role);
+      users = users.filter(u => u.role === options.role);
     }
 
     if (options.status) {
-      sql += ` AND status = ?`;
-      params.push(options.status);
+      users = users.filter(u => u.status === options.status);
     }
 
-    sql += ` ORDER BY created_at DESC`;
+    users.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     if (options.limit) {
-      sql += ` LIMIT ? OFFSET ?`;
-      params.push(options.limit, options.offset || 0);
+      const offset = options.offset || 0;
+      users = users.slice(offset, offset + options.limit);
     }
 
-    return db.prepare(sql).all(params);
+    return users;
   },
 
   // 统计总数
   count: (options = {}) => {
     const db = getDb();
-    let sql = 'SELECT COUNT(*) as total FROM users WHERE 1=1';
-    const params = [];
+    let users = [...db.users];
 
     if (options.keyword) {
-      sql += ` AND (username LIKE ? OR full_name LIKE ? OR email LIKE ?)`;
-      const keyword = `%${options.keyword}%`;
-      params.push(keyword, keyword, keyword);
+      const keyword = options.keyword.toLowerCase();
+      users = users.filter(u =>
+        u.username.toLowerCase().includes(keyword) ||
+        u.full_name.toLowerCase().includes(keyword) ||
+        u.email.toLowerCase().includes(keyword)
+      );
     }
 
     if (options.role) {
-      sql += ` AND role = ?`;
-      params.push(options.role);
+      users = users.filter(u => u.role === options.role);
     }
 
-    const result = db.prepare(sql).get(params);
-    return result.total;
+    return users.length;
   },
 
   // 根据ID查找用户
   findById: (id) => {
     const db = getDb();
-    return db.prepare('SELECT * FROM users WHERE id = ?').get(id);
+    return db.users.find(u => u.id === id);
   },
 
   // 根据用户名查找用户
   findByUsername: (username) => {
     const db = getDb();
-    return db.prepare('SELECT * FROM users WHERE username = ?').get(username);
+    return db.users.find(u => u.username === username);
   },
 
   // 创建用户
   create: (userData) => {
     const db = getDb();
     const id = uuidv4();
-    
-    const sql = `
-      INSERT INTO users (id, username, password_hash, full_name, email, phone, department, role, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-    
-    const params = [
-      id,
-      userData.username,
-      userData.passwordHash,
-      userData.fullName,
-      userData.email,
-      userData.phone || null,
-      userData.department || null,
-      userData.role || 'STAFF',
-      userData.status || 'active',
-    ];
 
-    db.prepare(sql).run(params);
-    return UserDAO.findById(id);
+    const newUser = {
+      id,
+      username: userData.username,
+      password_hash: userData.passwordHash,
+      full_name: userData.fullName,
+      email: userData.email,
+      phone: userData.phone || null,
+      department: userData.department || null,
+      role: userData.role || 'STAFF',
+      status: userData.status || 'active',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    db.users.push(newUser);
+    return newUser;
   },
 
   // 更新用户
   update: (id, userData) => {
     const db = getDb();
-    
-    const allowedFields = ['full_name', 'email', 'phone', 'department', 'role', 'status'];
-    const updates = [];
-    const params = [];
+    const index = db.users.findIndex(u => u.id === id);
+    if (index === -1) return null;
+
+    const allowedFields = {
+      fullName: 'full_name',
+      email: 'email',
+      phone: 'phone',
+      department: 'department',
+      role: 'role',
+      status: 'status',
+    };
 
     for (const [key, value] of Object.entries(userData)) {
-      const dbField = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
-      if (allowedFields.includes(dbField)) {
-        updates.push(`${dbField} = ?`);
-        params.push(value);
+      const dbField = allowedFields[key];
+      if (dbField) {
+        db.users[index][dbField] = value;
       }
     }
 
-    if (updates.length === 0) return null;
-
-    params.push(id);
-    const sql = `UPDATE users SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`;
-    
-    db.prepare(sql).run(params);
-    return UserDAO.findById(id);
+    db.users[index].updated_at = new Date().toISOString();
+    return db.users[index];
   },
 
   // 删除用户
   delete: (id) => {
     const db = getDb();
-    const result = db.prepare('DELETE FROM users WHERE id = ?').run(id);
-    return result.changes > 0;
+    const index = db.users.findIndex(u => u.id === id);
+    if (index === -1) return false;
+
+    db.users.splice(index, 1);
+    return true;
   },
 
   // 更新密码
   updatePassword: (id, passwordHash) => {
     const db = getDb();
-    const sql = `UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`;
-    const result = db.prepare(sql).run(passwordHash, id);
-    return result.changes > 0;
+    const index = db.users.findIndex(u => u.id === id);
+    if (index === -1) return false;
+
+    db.users[index].password_hash = passwordHash;
+    db.users[index].updated_at = new Date().toISOString();
+    return true;
   },
 };

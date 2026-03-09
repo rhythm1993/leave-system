@@ -3,18 +3,18 @@ import { BalanceDAO } from '../dao/balances.js';
 
 const router = Router();
 
-// 获取请假余额
+// Get leave balances
 router.get('/', (req, res) => {
   try {
     const { userId, year = new Date().getFullYear() } = req.query;
 
     let balances;
     if (userId) {
-      // 查询指定用户的余额
+      // Query specific user's balance
       const balance = BalanceDAO.findByUserId(userId, parseInt(year));
       balances = balance ? [balance] : [];
     } else {
-      // 查询所有余额
+      // Query all balances
       balances = BalanceDAO.findAll({ year: parseInt(year) });
     }
 
@@ -34,15 +34,15 @@ router.get('/', (req, res) => {
       })),
     });
   } catch (error) {
-    console.error('查询余额失败:', error);
+    console.error('Failed to query balance:', error);
     res.status(500).json({
       code: 500,
-      message: '服务器内部错误',
+      message: 'Internal server error',
     });
   }
 });
 
-// 调整余额（HR权限）
+// Adjust balance (HR permission)
 router.post('/adjust', (req, res) => {
   try {
     const { userId, year, adjustDays, reason } = req.body;
@@ -53,7 +53,7 @@ router.post('/adjust', (req, res) => {
     if (!success) {
       return res.status(404).json({
         code: 404,
-        message: '余额记录不存在',
+        message: 'Balance record not found',
       });
     }
 
@@ -61,7 +61,7 @@ router.post('/adjust', (req, res) => {
 
     res.json({
       code: 200,
-      message: '调整成功',
+      message: 'Adjusted successfully',
       data: {
         id: updatedBalance.id,
         userId: updatedBalance.user_id,
@@ -73,10 +73,10 @@ router.post('/adjust', (req, res) => {
       },
     });
   } catch (error) {
-    console.error('调整余额失败:', error);
+    console.error('Failed to adjust balance:', error);
     res.status(500).json({
       code: 500,
-      message: '服务器内部错误',
+      message: 'Internal server error',
     });
   }
 });

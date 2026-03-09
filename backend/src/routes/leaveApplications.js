@@ -5,7 +5,7 @@ import { BalanceDAO } from '../dao/balances.js';
 
 const router = Router();
 
-// 获取请假申请列表
+// Get leave application list
 router.get('/', (req, res) => {
   try {
     const { view, status, type, page = 1, size = 20 } = req.query;
@@ -15,9 +15,9 @@ router.get('/', (req, res) => {
       offset: (parseInt(page) - 1) * parseInt(size),
     };
 
-    // 根据视图筛选
+    // Filter by view
     if (view === 'my') {
-      // 实际应该从token获取当前用户ID，这里简化处理
+      // Should get current user ID from token, simplified here
       options.applicantId = 'user-001';
     }
 
@@ -56,22 +56,22 @@ router.get('/', (req, res) => {
       },
     });
   } catch (error) {
-    console.error('获取申请列表失败:', error);
+    console.error('Failed to get application list:', error);
     res.status(500).json({
       code: 500,
-      message: '服务器内部错误',
+      message: 'Internal server error',
     });
   }
 });
 
-// 获取单个申请
+// Get single application
 router.get('/:id', (req, res) => {
   try {
     const application = LeaveApplicationDAO.findById(req.params.id);
     if (!application) {
       return res.status(404).json({
         code: 404,
-        message: '申请不存在',
+        message: 'Application not found',
       });
     }
 
@@ -95,33 +95,33 @@ router.get('/:id', (req, res) => {
       },
     });
   } catch (error) {
-    console.error('获取申请详情失败:', error);
+    console.error('Failed to get application details:', error);
     res.status(500).json({
       code: 500,
-      message: '服务器内部错误',
+      message: 'Internal server error',
     });
   }
 });
 
-// 提交请假申请
+// Submit leave application
 router.post('/', (req, res) => {
   try {
     const { leaveType, startDate, endDate, days, reason, contactInfo } = req.body;
-    const applicantId = 'user-001'; // 实际从token获取
+    const applicantId = 'user-001'; // Should get from token in production
     const currentYear = new Date().getFullYear();
 
-    // 检查余额
+    // Check balance
     const balance = BalanceDAO.getOrCreate(applicantId, currentYear);
     const available = balance.total_days - balance.used_days - balance.pending_days;
-    
+
     if (available < days) {
       return res.status(409).json({
         code: 409,
-        message: `假期余额不足，剩余${available}天`,
+        message: `Insufficient leave balance. Remaining: ${available} days`,
       });
     }
 
-    // 创建申请
+    // Create application
     const newApplication = LeaveApplicationDAO.create({
       applicantId,
       leaveType,
@@ -133,12 +133,12 @@ router.post('/', (req, res) => {
       submittedBy: applicantId,
     });
 
-    // 更新待审批占用
+    // Update pending days
     BalanceDAO.updatePendingDays(applicantId, currentYear, days);
 
     res.status(201).json({
       code: 201,
-      message: '申请提交成功',
+      message: 'Application submitted successfully',
       data: {
         id: newApplication.id,
         applicationNo: newApplication.application_no,
@@ -150,34 +150,34 @@ router.post('/', (req, res) => {
       },
     });
   } catch (error) {
-    console.error('提交申请失败:', error);
+    console.error('Failed to submit application:', error);
     res.status(500).json({
       code: 500,
-      message: '服务器内部错误',
+      message: 'Internal server error',
     });
   }
 });
 
-// 取消申请
+// Cancel application
 router.post('/:id/cancel', (req, res) => {
   try {
     const { reason } = req.body;
-    const cancelledBy = 'user-001'; // 实际从token获取
+    const cancelledBy = 'user-001'; // Should get from token in production
     const currentYear = new Date().getFullYear();
 
     const application = LeaveApplicationDAO.findById(req.params.id);
     if (!application) {
       return res.status(404).json({
         code: 404,
-        message: '申请不存在',
+        message: 'Application not found',
       });
     }
 
-    // 已批准的申请需要恢复余额
+    // Restore balance for approved applications
     if (application.status === 'approved') {
       BalanceDAO.updateUsedDays(application.applicant_id, currentYear, -application.days);
     } else {
-      // 待审批的申请释放pending
+      // Release pending for non-approved applications
       BalanceDAO.updatePendingDays(application.applicant_id, currentYear, -application.days);
     }
 
@@ -185,22 +185,22 @@ router.post('/:id/cancel', (req, res) => {
 
     res.json({
       code: 200,
-      message: '取消成功',
+      message: 'Cancelled successfully',
       data: {
         id: cancelledApp.id,
         status: cancelledApp.status,
       },
     });
   } catch (error) {
-    console.error('取消申请失败:', error);
+    console.error('Failed to cancel application:', error);
     res.status(500).json({
       code: 500,
-      message: '服务器内部错误',
+      message: 'Internal server error',
     });
   }
 });
 
-// PM背书审批
+// PM endorsement approval
 router.post('/:id/endorse', (req, res) => {
   try {
     const { action, comment } = req.body;
@@ -210,14 +210,14 @@ router.post('/:id/endorse', (req, res) => {
     if (!application) {
       return res.status(404).json({
         code: 404,
-        message: '申请不存在',
+        message: 'Application not found',
       });
     }
 
     let newStatus;
     if (action === 'reject') {
       newStatus = 'rejected';
-      // 释放pending余额
+      // Release pending balance
       BalanceDAO.updatePendingDays(application.applicant_id, currentYear, -application.days);
     } else {
       newStatus = 'endorsed';
@@ -227,22 +227,22 @@ router.post('/:id/endorse', (req, res) => {
 
     res.json({
       code: 200,
-      message: action === 'approve' ? '背书成功' : '已拒绝',
+      message: action === 'approve' ? 'Endorsed successfully' : 'Rejected',
       data: {
         id: updatedApp.id,
         status: updatedApp.status,
       },
     });
   } catch (error) {
-    console.error('背书审批失败:', error);
+    console.error('Endorsement failed:', error);
     res.status(500).json({
       code: 500,
-      message: '服务器内部错误',
+      message: 'Internal server error',
     });
   }
 });
 
-// HR审批
+// HR approval
 router.post('/:id/hr-approve', (req, res) => {
   try {
     const { action, comment } = req.body;
@@ -252,18 +252,18 @@ router.post('/:id/hr-approve', (req, res) => {
     if (!application) {
       return res.status(404).json({
         code: 404,
-        message: '申请不存在',
+        message: 'Application not found',
       });
     }
 
     let newStatus;
     if (action === 'reject') {
       newStatus = 'rejected';
-      // 释放pending余额
+      // Release pending balance
       BalanceDAO.updatePendingDays(application.applicant_id, currentYear, -application.days);
     } else {
       newStatus = 'approved';
-      // 扣除余额：先释放pending，再增加used
+      // Deduct balance: release pending first, then add used
       BalanceDAO.updatePendingDays(application.applicant_id, currentYear, -application.days);
       BalanceDAO.updateUsedDays(application.applicant_id, currentYear, application.days);
     }
@@ -272,17 +272,17 @@ router.post('/:id/hr-approve', (req, res) => {
 
     res.json({
       code: 200,
-      message: action === 'approve' ? '审批通过' : '已拒绝',
+      message: action === 'approve' ? 'Approved successfully' : 'Rejected',
       data: {
         id: updatedApp.id,
         status: updatedApp.status,
       },
     });
   } catch (error) {
-    console.error('HR审批失败:', error);
+    console.error('HR approval failed:', error);
     res.status(500).json({
       code: 500,
-      message: '服务器内部错误',
+      message: 'Internal server error',
     });
   }
 });

@@ -6,38 +6,43 @@ import { UserDAO } from '../dao/users.js';
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
-// 登录
+// Login
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // 查找用户
+    // Find user
     const user = UserDAO.findByUsername(username);
     if (!user) {
+      console.log(`[Auth] User not found: ${username}`);
       return res.status(401).json({
         code: 401,
-        message: '用户名或密码错误',
+        message: 'Invalid username or password',
       });
     }
 
-    // 验证密码
+    console.log(`[Auth] Found user: ${username}, hash: ${user.password_hash.substring(0, 20)}...`);
+
+    // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    console.log(`[Auth] Password valid: ${isPasswordValid}`);
+
     if (!isPasswordValid) {
       return res.status(401).json({
         code: 401,
-        message: '用户名或密码错误',
+        message: 'Invalid username or password',
       });
     }
 
-    // 检查用户状态
+    // Check user status
     if (user.status !== 'active') {
       return res.status(403).json({
         code: 403,
-        message: '账户已被禁用',
+        message: 'Account has been disabled',
       });
     }
 
-    // 生成JWT
+    // Generate JWT
     const token = jwt.sign(
       { userId: user.id, role: user.role },
       JWT_SECRET,
@@ -46,7 +51,7 @@ router.post('/login', async (req, res) => {
 
     res.json({
       code: 200,
-      message: '登录成功',
+      message: 'Login successful',
       data: {
         token,
         user: {
@@ -60,19 +65,19 @@ router.post('/login', async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('登录失败:', error);
+    console.error('Login failed:', error);
     res.status(500).json({
       code: 500,
-      message: '服务器内部错误',
+      message: 'Internal server error',
     });
   }
 });
 
-// 登出
+// Logout
 router.post('/logout', (req, res) => {
   res.json({
     code: 200,
-    message: '登出成功',
+    message: 'Logout successful',
   });
 });
 

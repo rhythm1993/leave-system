@@ -30,20 +30,20 @@ export const PendingApproval: React.FC = () => {
   const [actionType, setActionType] = useState<'approve' | 'reject'>('approve');
   const [form] = Form.useForm();
 
-  // 获取待审批列表
+  // Fetch pending approval list
   const fetchApplications = async () => {
     setLoading(true);
     try {
-      // 查询待背书和待HR审批的申请
+      // Query pending endorsement and pending HR approval applications
       const response1: any = await leaveApi.getApplications({ status: 'pending_endorsement' });
       const response2: any = await leaveApi.getApplications({ status: 'endorsed' });
-      
+
       if (response1.code === 200 && response2.code === 200) {
         const list = [...response1.data.list, ...response2.data.list];
         setApplications(list);
       }
     } catch (error) {
-      message.error('获取审批列表失败');
+      message.error('Failed to get approval list');
     } finally {
       setLoading(false);
     }
@@ -55,9 +55,9 @@ export const PendingApproval: React.FC = () => {
 
   const getStatusTag = (status: string) => {
     const config: Record<string, { color: string; text: string }> = {
-      pending_endorsement: { color: 'processing', text: '待背书' },
-      endorsed: { color: 'warning', text: '待HR审批' },
-      pending_hr_approval: { color: 'warning', text: '待HR审批' },
+      pending_endorsement: { color: 'processing', text: 'Pending Endorsement' },
+      endorsed: { color: 'warning', text: 'Pending HR Approval' },
+      pending_hr_approval: { color: 'warning', text: 'Pending HR Approval' },
     };
     const { color, text } = config[status] || { color: 'default', text: status };
     return <Tag color={color}>{text}</Tag>;
@@ -65,14 +65,14 @@ export const PendingApproval: React.FC = () => {
 
   const getLeaveTypeText = (type: string) => {
     const types: Record<string, string> = {
-      annual: '年假',
-      sick: '病假',
-      marriage: '婚假',
-      maternity: '产假',
-      paternity: '陪产假',
-      compassionate: '恩恤假',
-      unpaid: '无薪假',
-      other: '其他',
+      annual: 'Annual Leave',
+      sick: 'Sick Leave',
+      marriage: 'Marriage Leave',
+      maternity: 'Maternity Leave',
+      paternity: 'Paternity Leave',
+      compassionate: 'Compassionate Leave',
+      unpaid: 'Unpaid Leave',
+      other: 'Other',
     };
     return types[type] || type;
   };
@@ -96,8 +96,8 @@ export const PendingApproval: React.FC = () => {
 
     try {
       let response;
-      
-      // 根据状态判断是PM背书还是HR审批
+
+      // Determine if PM endorsement or HR approval based on status
       if (currentRecord.status === 'pending_endorsement') {
         response = await leaveApi.endorse(currentRecord.id, actionType, values.comment);
       } else {
@@ -105,24 +105,24 @@ export const PendingApproval: React.FC = () => {
       }
 
       if (response.code === 200) {
-        message.success(actionType === 'approve' ? '审批通过成功' : '已拒绝该申请');
+        message.success(actionType === 'approve' ? 'Approved successfully' : 'Application rejected');
         setIsModalVisible(false);
         form.resetFields();
         fetchApplications();
       }
     } catch (error: any) {
-      message.error(error.response?.data?.message || '审批失败');
+      message.error(error.response?.data?.message || 'Approval failed');
     }
   };
 
   const columns = [
     {
-      title: '申请编号',
+      title: 'Application No.',
       dataIndex: 'applicationNo',
       key: 'applicationNo',
     },
     {
-      title: '申请人',
+      title: 'Applicant',
       key: 'applicant',
       render: (_: any, record: any) => (
         <div>
@@ -132,35 +132,35 @@ export const PendingApproval: React.FC = () => {
       ),
     },
     {
-      title: '请假类型',
+      title: 'Leave Type',
       dataIndex: 'leaveType',
       key: 'leaveType',
       render: getLeaveTypeText,
     },
     {
-      title: '时间段',
+      title: 'Period',
       key: 'dateRange',
-      render: (_: any, record: any) => `${record.startDate} 至 ${record.endDate}`,
+      render: (_: any, record: any) => `${record.startDate} to ${record.endDate}`,
     },
     {
-      title: '天数',
+      title: 'Days',
       dataIndex: 'days',
       key: 'days',
     },
     {
-      title: '状态',
+      title: 'Status',
       dataIndex: 'status',
       key: 'status',
       render: getStatusTag,
     },
     {
-      title: '提交时间',
+      title: 'Submitted At',
       dataIndex: 'createdAt',
       key: 'createdAt',
       render: (date: string) => dayjs(date).format('MM-DD HH:mm'),
     },
     {
-      title: '操作',
+      title: 'Actions',
       key: 'action',
       width: 200,
       render: (_: any, record: any) => (
@@ -171,7 +171,7 @@ export const PendingApproval: React.FC = () => {
             size="small"
             onClick={() => handleApprove(record)}
           >
-            通过
+            Approve
           </Button>
           <Button
             danger
@@ -179,7 +179,7 @@ export const PendingApproval: React.FC = () => {
             size="small"
             onClick={() => handleReject(record)}
           >
-            拒绝
+            Reject
           </Button>
         </Space>
       ),
@@ -188,8 +188,8 @@ export const PendingApproval: React.FC = () => {
 
   return (
     <div>
-      <Title level={4}>待我审批</Title>
-      
+      <Title level={4}>Pending My Approval</Title>
+
       <Card>
         <Table
           columns={columns}
@@ -201,30 +201,30 @@ export const PendingApproval: React.FC = () => {
       </Card>
 
       <Modal
-        title={actionType === 'approve' ? '审批通过' : '拒绝申请'}
+        title={actionType === 'approve' ? 'Approve Application' : 'Reject Application'}
         open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         onOk={() => form.submit()}
-        okText="确认"
-        cancelText="取消"
+        okText="Confirm"
+        cancelText="Cancel"
         okButtonProps={{ danger: actionType === 'reject' }}
       >
         {currentRecord && (
           <>
             <Descriptions column={1} size="small" style={{ marginBottom: 24 }}>
-              <Descriptions.Item label="申请编号">
+              <Descriptions.Item label="Application No.">
                 {currentRecord.applicationNo}
               </Descriptions.Item>
-              <Descriptions.Item label="申请人">
+              <Descriptions.Item label="Applicant">
                 {currentRecord.applicantName || currentRecord.applicantId} ({currentRecord.department})
               </Descriptions.Item>
-              <Descriptions.Item label="请假类型">
+              <Descriptions.Item label="Leave Type">
                 {getLeaveTypeText(currentRecord.leaveType)}
               </Descriptions.Item>
-              <Descriptions.Item label="时间段">
-                {currentRecord.startDate} 至 {currentRecord.endDate}（共{currentRecord.days}天）
+              <Descriptions.Item label="Period">
+                {currentRecord.startDate} to {currentRecord.endDate} ({currentRecord.days} days)
               </Descriptions.Item>
-              <Descriptions.Item label="请假原因">
+              <Descriptions.Item label="Reason">
                 {currentRecord.reason}
               </Descriptions.Item>
             </Descriptions>
@@ -232,15 +232,15 @@ export const PendingApproval: React.FC = () => {
             <Form form={form} onFinish={handleSubmit} layout="vertical">
               <Form.Item
                 name="comment"
-                label={actionType === 'reject' ? '拒绝原因（必填）' : '审批意见（选填）'}
+                label={actionType === 'reject' ? 'Rejection Reason (Required)' : 'Approval Comment (Optional)'}
                 rules={[
                   {
                     required: actionType === 'reject',
-                    message: '请输入拒绝原因',
+                    message: 'Please enter rejection reason',
                   },
                 ]}
               >
-                <TextArea rows={3} placeholder="请输入审批意见..." />
+                <TextArea rows={3} placeholder="Enter approval comment..." />
               </Form.Item>
             </Form>
           </>

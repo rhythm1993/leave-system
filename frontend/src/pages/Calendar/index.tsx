@@ -15,23 +15,23 @@ export const LeaveCalendar: React.FC = () => {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // 获取日历事件
+  // Fetch calendar events
   const fetchEvents = async () => {
     setLoading(true);
     try {
       const startOfMonth = dayjs().startOf('month').format('YYYY-MM-DD');
       const endOfMonth = dayjs().endOf('month').format('YYYY-MM-DD');
-      
+
       const response: any = await calendarApi.getEvents({
         startDate: startOfMonth,
         endDate: endOfMonth,
       });
-      
+
       if (response.code === 200) {
         setEvents(response.data);
       }
     } catch (error) {
-      console.error('获取日历事件失败:', error);
+      console.error('Failed to get calendar events:', error);
     } finally {
       setLoading(false);
     }
@@ -41,7 +41,7 @@ export const LeaveCalendar: React.FC = () => {
     fetchEvents();
   }, []);
 
-  // 获取某天的请假数据
+  // Get leave data for a specific day
   const getListData = (value: dayjs.Dayjs) => {
     return events.filter((event) => {
       const start = dayjs(event.start);
@@ -50,15 +50,15 @@ export const LeaveCalendar: React.FC = () => {
     });
   };
 
-  // 日期单元格渲染
+  // Date cell render
   const dateCellRender = (value: dayjs.Dayjs) => {
     let listData = getListData(value);
-    
-    // 筛选
+
+    // Filter
     if (filterType !== 'all') {
       listData = listData.filter(item => item.leaveType === filterType);
     }
-    
+
     if (listData.length === 0) return null;
 
     return (
@@ -72,7 +72,7 @@ export const LeaveCalendar: React.FC = () => {
           </li>
         ))}
         {listData.length > 3 && (
-          <li style={{ fontSize: 12, color: '#999' }}>+{listData.length - 3} 人</li>
+          <li style={{ fontSize: 12, color: '#999' }}>+{listData.length - 3} more</li>
         )}
       </ul>
     );
@@ -94,16 +94,16 @@ export const LeaveCalendar: React.FC = () => {
 
   const getStatusTag = (status: string) => {
     const config: Record<string, { color: string; text: string }> = {
-      approved: { color: 'success', text: '已批准' },
-      pending_endorsement: { color: 'processing', text: '待背书' },
-      endorsed: { color: 'warning', text: '待HR审批' },
-      pending_hr_approval: { color: 'warning', text: '待HR审批' },
+      approved: { color: 'success', text: 'Approved' },
+      pending_endorsement: { color: 'processing', text: 'Pending Endorsement' },
+      endorsed: { color: 'warning', text: 'Pending HR Approval' },
+      pending_hr_approval: { color: 'warning', text: 'Pending HR Approval' },
     };
     const { color, text } = config[status] || { color: 'default', text: status };
     return <Tag color={color}>{text}</Tag>;
   };
 
-  // 获取选中日期的事件
+  // Get events for selected date
   const getSelectedDateEvents = () => {
     if (!selectedDate) return [];
     let list = getListData(selectedDate);
@@ -115,23 +115,23 @@ export const LeaveCalendar: React.FC = () => {
 
   return (
     <div>
-      <Title level={4}>请假日历</Title>
+      <Title level={4}>Leave Calendar</Title>
       <Space style={{ marginBottom: 16 }}>
-        <span>筛选：</span>
+        <span>Filter:</span>
         <Select
           value={filterType}
           onChange={setFilterType}
-          style={{ width: 140 }}
+          style={{ width: 160 }}
         >
-          <Option value="all">全部</Option>
-          <Option value="annual">年假</Option>
-          <Option value="sick">病假</Option>
-          <Option value="marriage">婚假</Option>
-          <Option value="maternity">产假</Option>
-          <Option value="paternity">陪产假</Option>
-          <Option value="compassionate">恩恤假</Option>
-          <Option value="unpaid">无薪假</Option>
-          <Option value="other">其他</Option>
+          <Option value="all">All</Option>
+          <Option value="annual">Annual Leave</Option>
+          <Option value="sick">Sick Leave</Option>
+          <Option value="marriage">Marriage Leave</Option>
+          <Option value="maternity">Maternity Leave</Option>
+          <Option value="paternity">Paternity Leave</Option>
+          <Option value="compassionate">Compassionate Leave</Option>
+          <Option value="unpaid">Unpaid Leave</Option>
+          <Option value="other">Other</Option>
         </Select>
       </Space>
 
@@ -144,7 +144,7 @@ export const LeaveCalendar: React.FC = () => {
           />
         </Card>
 
-        <Card style={{ width: 350 }} title={selectedDate?.format('YYYY年MM月DD日') || '请选择日期'}>
+        <Card style={{ width: 350 }} title={selectedDate?.format('YYYY-MM-DD') || 'Select a date'}>
           <List
             dataSource={getSelectedDateEvents()}
             renderItem={(item: any) => (
@@ -166,22 +166,22 @@ export const LeaveCalendar: React.FC = () => {
                       {getStatusTag(item.status)}
                     </Space>
                   }
-                  description={`${item.start} 至 ${item.end} · ${item.days}天`}
+                  description={`${item.start} to ${item.end} · ${item.days} days`}
                 />
               </List.Item>
             )}
-            locale={{ emptyText: '该日期无请假记录' }}
+            locale={{ emptyText: 'No leave records for this date' }}
           />
         </Card>
       </div>
 
       <div style={{ marginTop: 16 }}>
         <Space>
-          <Badge status="success" text="年假" />
-          <Badge status="error" text="病假" />
-          <Badge status="warning" text="婚假" />
-          <Badge status="processing" text="产假" />
-          <Badge status="default" text="其他" />
+          <Badge status="success" text="Annual Leave" />
+          <Badge status="error" text="Sick Leave" />
+          <Badge status="warning" text="Marriage Leave" />
+          <Badge status="processing" text="Maternity Leave" />
+          <Badge status="default" text="Other" />
         </Space>
       </div>
     </div>

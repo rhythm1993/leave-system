@@ -15,25 +15,25 @@ export const Dashboard: React.FC = () => {
 
   const stats = [
     {
-      title: '待审批申请',
+      title: 'Pending Approvals',
       value: 5,
       icon: <ClockCircleOutlined style={{ color: '#faad14', fontSize: 24 }} />,
       color: '#fff7e6',
     },
     {
-      title: '本月请假天数',
+      title: 'Leave Days This Month',
       value: 12,
       icon: <FileTextOutlined style={{ color: '#52c41a', fontSize: 24 }} />,
       color: '#f6ffed',
     },
     {
-      title: '剩余假期',
+      title: 'Remaining Leave',
       value: 13,
       icon: <CheckCircleOutlined style={{ color: '#1890ff', fontSize: 24 }} />,
       color: '#e6f7ff',
     },
     {
-      title: '团队成员',
+      title: 'Team Members',
       value: 8,
       icon: <UserOutlined style={{ color: '#722ed1', fontSize: 24 }} />,
       color: '#f9f0ff',
@@ -41,16 +41,16 @@ export const Dashboard: React.FC = () => {
   ];
 
   const pendingApprovals = [
-    { id: 1, name: '张三', type: '年假', days: 3, date: '2026-03-15 至 2026-03-17' },
-    { id: 2, name: '李四', type: '病假', days: 2, date: '2026-03-18 至 2026-03-19' },
-    { id: 3, name: '王五', type: '年假', days: 5, date: '2026-03-20 至 2026-03-24' },
+    { id: 1, name: 'Zhang San', type: 'Annual Leave', days: 3, date: '2026-03-15 to 2026-03-17' },
+    { id: 2, name: 'Li Si', type: 'Sick Leave', days: 2, date: '2026-03-18 to 2026-03-19' },
+    { id: 3, name: 'Wang Wu', type: 'Annual Leave', days: 5, date: '2026-03-20 to 2026-03-24' },
   ];
 
   return (
     <div>
-      <Title level={4}>仪表板</Title>
-      
-      {/* 统计卡片 */}
+      <Title level={4}>Dashboard</Title>
+
+      {/* Statistics Cards */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         {stats.map((stat, index) => (
           <Col xs={24} sm={12} lg={6} key={index}>
@@ -68,49 +68,49 @@ export const Dashboard: React.FC = () => {
         ))}
       </Row>
 
-      {/* 快捷操作 */}
+      {/* Quick Actions */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col span={24}>
-          <Card title="快捷操作">
+          <Card title="Quick Actions">
             <Space>
               <Button type="primary" size="large" onClick={() => navigate('/leave/apply')}>
-                申请请假
+                Apply for Leave
               </Button>
               <Button size="large" onClick={() => navigate('/calendar')}>
-                查看日历
+                View Calendar
               </Button>
               <Button size="large" onClick={() => navigate('/leave/my-applications')}>
-                我的申请
+                My Applications
               </Button>
             </Space>
           </Card>
         </Col>
       </Row>
 
-      {/* 待审批列表 */}
+      {/* Pending Approvals */}
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={12}>
-          <Card 
-            title="待我审批" 
-            extra={<Button type="link" onClick={() => navigate('/leave/pending-approval')}>查看全部</Button>}
+          <Card
+            title="Pending My Approval"
+            extra={<Button type="link" onClick={() => navigate('/leave/pending-approval')}>View All</Button>}
           >
             <List
               dataSource={pendingApprovals}
               renderItem={(item) => (
                 <List.Item
                   actions={[
-                    <Button type="primary" size="small" onClick={() => navigate('/leave/pending-approval')}>通过</Button>,
-                    <Button danger size="small" onClick={() => navigate('/leave/pending-approval')}>拒绝</Button>,
+                    <Button type="primary" size="small" onClick={() => navigate('/leave/pending-approval')}>Approve</Button>,
+                    <Button danger size="small" onClick={() => navigate('/leave/pending-approval')}>Reject</Button>,
                   ]}
                 >
                   <List.Item.Meta
                     title={
                       <Space>
                         <Text strong>{item.name}</Text>
-                        <Tag color={item.type === '年假' ? 'green' : 'red'}>{item.type}</Tag>
+                        <Tag color={item.type === 'Annual Leave' ? 'green' : 'red'}>{item.type}</Tag>
                       </Space>
                     }
-                    description={`${item.date} · ${item.days}天`}
+                    description={`${item.date} · ${item.days} days`}
                   />
                 </List.Item>
               )}
@@ -118,16 +118,16 @@ export const Dashboard: React.FC = () => {
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card title="系统公告">
+          <Card title="System Announcements">
             <List>
               <List.Item>
-                <Text>📢 2026年春节放假安排已发布</Text>
+                <Text>📢 2026 Spring Festival holiday schedule has been released</Text>
               </List.Item>
               <List.Item>
-                <Text>📢 请尽快完成本季度请假余额确认</Text>
+                <Text>📢 Please confirm your leave balance for this quarter</Text>
               </List.Item>
               <List.Item>
-                <Text>📢 新功能：支持批量审批已上线</Text>
+                <Text>📢 New feature: Batch approval is now available</Text>
               </List.Item>
             </List>
           </Card>

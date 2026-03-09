@@ -14,8 +14,8 @@ export const Login: React.FC = () => {
 
   const handleSubmit = async (values: { username: string; password: string }) => {
     setLoading(true);
-    
-    // 模拟登录验证
+
+    // Simulate login verification
     setTimeout(() => {
       const user = mockUsers.find(
         (u) => u.username === values.username && u.password === values.password
@@ -23,10 +23,10 @@ export const Login: React.FC = () => {
 
       if (user) {
         setUser(user);
-        message.success('登录成功！');
+        message.success('Login successful!');
         navigate('/dashboard');
       } else {
-        message.error('用户名或密码错误');
+        message.error('Invalid username or password');
       }
       setLoading(false);
     }, 500);
@@ -63,9 +63,9 @@ export const Login: React.FC = () => {
               L
             </div>
             <Title level={3} style={{ margin: 0 }}>
-              请假申请系统
+              Leave Application System
             </Title>
-            <Text type="secondary">Leave Application System</Text>
+            <Text type="secondary">Employee Leave Management</Text>
           </div>
 
           <Form
@@ -76,21 +76,21 @@ export const Login: React.FC = () => {
           >
             <Form.Item
               name="username"
-              rules={[{ required: true, message: '请输入用户名' }]}
+              rules={[{ required: true, message: 'Please enter username' }]}
             >
               <Input
                 prefix={<UserOutlined />}
-                placeholder="用户名"
+                placeholder="Username"
               />
             </Form.Item>
 
             <Form.Item
               name="password"
-              rules={[{ required: true, message: '请输入密码' }]}
+              rules={[{ required: true, message: 'Please enter password' }]}
             >
               <Input.Password
                 prefix={<LockOutlined />}
-                placeholder="密码"
+                placeholder="Password"
               />
             </Form.Item>
 
@@ -101,17 +101,17 @@ export const Login: React.FC = () => {
                 loading={loading}
                 block
               >
-                登录
+                Login
               </Button>
             </Form.Item>
           </Form>
 
           <div style={{ background: '#f6ffed', padding: 12, borderRadius: 4 }}>
             <Text strong style={{ fontSize: 12, color: '#52c41a' }}>
-              测试账号：
+              Test Accounts:
             </Text>
             <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
-              <div>管理员: admin / password123</div>
+              <div>Admin: admin / password123</div>
               <div>HR: wenny / password123</div>
               <div>PM: alex / password123</div>
               <div>Staff: lisa / password123</div>

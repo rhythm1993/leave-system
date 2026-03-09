@@ -5,7 +5,7 @@ import { BalanceDAO } from '../dao/balances.js';
 
 const router = Router();
 
-// 获取用户列表
+// Get user list
 router.get('/', (req, res) => {
   try {
     const { keyword, role, page = 1, size = 20 } = req.query;
@@ -41,22 +41,22 @@ router.get('/', (req, res) => {
       },
     });
   } catch (error) {
-    console.error('获取用户列表失败:', error);
+    console.error('Failed to get user list:', error);
     res.status(500).json({
       code: 500,
-      message: '服务器内部错误',
+      message: 'Internal server error',
     });
   }
 });
 
-// 获取单个用户
+// Get single user
 router.get('/:id', (req, res) => {
   try {
     const user = UserDAO.findById(req.params.id);
     if (!user) {
       return res.status(404).json({
         code: 404,
-        message: '用户不存在',
+        message: 'User not found',
       });
     }
 
@@ -76,32 +76,32 @@ router.get('/:id', (req, res) => {
       },
     });
   } catch (error) {
-    console.error('获取用户详情失败:', error);
+    console.error('Failed to get user details:', error);
     res.status(500).json({
       code: 500,
-      message: '服务器内部错误',
+      message: 'Internal server error',
     });
   }
 });
 
-// 创建用户
+// Create user
 router.post('/', async (req, res) => {
   try {
     const { username, fullName, email, phone, department, role, password } = req.body;
 
-    // 检查用户名是否已存在
+    // Check if username already exists
     const existingUser = UserDAO.findByUsername(username);
     if (existingUser) {
       return res.status(409).json({
         code: 409,
-        message: '用户名已存在',
+        message: 'Username already exists',
       });
     }
 
-    // 加密密码
+    // Hash password
     const passwordHash = await bcrypt.hash(password || 'password123', 10);
 
-    // 创建用户
+    // Create user
     const newUser = UserDAO.create({
       username,
       passwordHash,
@@ -112,7 +112,7 @@ router.post('/', async (req, res) => {
       role,
     });
 
-    // 初始化余额
+    // Initialize balance
     const currentYear = new Date().getFullYear();
     BalanceDAO.create({
       userId: newUser.id,
@@ -124,7 +124,7 @@ router.post('/', async (req, res) => {
 
     res.status(201).json({
       code: 201,
-      message: '创建成功',
+      message: 'Created successfully',
       data: {
         id: newUser.id,
         username: newUser.username,
@@ -134,15 +134,15 @@ router.post('/', async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('创建用户失败:', error);
+    console.error('Failed to create user:', error);
     res.status(500).json({
       code: 500,
-      message: '服务器内部错误',
+      message: 'Internal server error',
     });
   }
 });
 
-// 更新用户
+// Update user
 router.put('/:id', (req, res) => {
   try {
     const { fullName, email, phone, department, role, status } = req.body;
@@ -159,13 +159,13 @@ router.put('/:id', (req, res) => {
     if (!updatedUser) {
       return res.status(404).json({
         code: 404,
-        message: '用户不存在',
+        message: 'User not found',
       });
     }
 
     res.json({
       code: 200,
-      message: '更新成功',
+      message: 'Updated successfully',
       data: {
         id: updatedUser.id,
         username: updatedUser.username,
@@ -176,34 +176,34 @@ router.put('/:id', (req, res) => {
       },
     });
   } catch (error) {
-    console.error('更新用户失败:', error);
+    console.error('Failed to update user:', error);
     res.status(500).json({
       code: 500,
-      message: '服务器内部错误',
+      message: 'Internal server error',
     });
   }
 });
 
-// 删除用户
+// Delete user
 router.delete('/:id', (req, res) => {
   try {
     const success = UserDAO.delete(req.params.id);
     if (!success) {
       return res.status(404).json({
         code: 404,
-        message: '用户不存在',
+        message: 'User not found',
       });
     }
 
     res.json({
       code: 200,
-      message: '删除成功',
+      message: 'Deleted successfully',
     });
   } catch (error) {
-    console.error('删除用户失败:', error);
+    console.error('Failed to delete user:', error);
     res.status(500).json({
       code: 500,
-      message: '服务器内部错误',
+      message: 'Internal server error',
     });
   }
 });

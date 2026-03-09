@@ -4,18 +4,18 @@ import { LeaveApplicationDAO } from '../dao/leaveApplications.js';
 
 const router = Router();
 
-// 获取日历事件
+// Get calendar events
 router.get('/events', (req, res) => {
   try {
     const { startDate, endDate, userIds } = req.query;
 
-    // 获取所有已批准的申请
+    // Get all approved applications
     let applications = LeaveApplicationDAO.findAll({ status: 'approved' });
 
     if (startDate && endDate) {
       const start = dayjs(String(startDate));
       const end = dayjs(String(endDate));
-      
+
       applications = applications.filter((app) => {
         const appStart = dayjs(app.start_date);
         const appEnd = dayjs(app.end_date);
@@ -36,10 +36,10 @@ router.get('/events', (req, res) => {
       applications = applications.filter((app) => ids.includes(app.applicant_id));
     }
 
-    // 转换为日历事件格式
+    // Convert to calendar event format
     const calendarEvents = applications.map((app) => ({
       id: app.id,
-      title: `${app.applicant_name || '未知'} - ${getLeaveTypeText(app.leave_type)}`,
+      title: `${app.applicant_name || 'Unknown'} - ${getLeaveTypeText(app.leave_type)}`,
       start: app.start_date,
       end: app.end_date,
       days: app.days,
@@ -55,25 +55,25 @@ router.get('/events', (req, res) => {
       data: calendarEvents,
     });
   } catch (error) {
-    console.error('获取日历事件失败:', error);
+    console.error('Failed to get calendar events:', error);
     res.status(500).json({
       code: 500,
-      message: '服务器内部错误',
+      message: 'Internal server error',
     });
   }
 });
 
-// 辅助函数：转换请假类型
+// Helper function: convert leave type
 const getLeaveTypeText = (type) => {
   const types = {
-    annual: '年假',
-    sick: '病假',
-    marriage: '婚假',
-    maternity: '产假',
-    paternity: '陪产假',
-    compassionate: '恩恤假',
-    unpaid: '无薪假',
-    other: '其他',
+    annual: 'Annual Leave',
+    sick: 'Sick Leave',
+    marriage: 'Marriage Leave',
+    maternity: 'Maternity Leave',
+    paternity: 'Paternity Leave',
+    compassionate: 'Compassionate Leave',
+    unpaid: 'Unpaid Leave',
+    other: 'Other',
   };
   return types[type] || type;
 };

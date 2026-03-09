@@ -29,7 +29,7 @@ export const LeaveApply: React.FC = () => {
   const [leaveType, setLeaveType] = useState('annual');
   const [balance, setBalance] = useState<any>(null);
 
-  // 获取余额
+  // Fetch balance
   const fetchBalance = async () => {
     try {
       const response: any = await balanceApi.getBalances();
@@ -37,7 +37,7 @@ export const LeaveApply: React.FC = () => {
         setBalance(response.data[0]);
       }
     } catch (error) {
-      console.error('获取余额失败:', error);
+      console.error('Failed to get balance:', error);
     }
   };
 
@@ -49,7 +49,7 @@ export const LeaveApply: React.FC = () => {
     setSubmitting(true);
     try {
       const [startDate, endDate] = values.dateRange;
-      
+
       const data = {
         leaveType: values.leaveType,
         startDate: startDate.format('YYYY-MM-DD'),
@@ -60,14 +60,14 @@ export const LeaveApply: React.FC = () => {
       };
 
       const response: any = await leaveApi.createApplication(data);
-      
+
       if (response.code === 201) {
-        message.success('请假申请提交成功！');
+        message.success('Leave application submitted successfully!');
         form.resetFields();
-        fetchBalance(); // 刷新余额
+        fetchBalance(); // Refresh balance
       }
     } catch (error: any) {
-      message.error(error.response?.data?.message || '提交失败');
+      message.error(error.response?.data?.message || 'Submission failed');
     } finally {
       setSubmitting(false);
     }
@@ -75,8 +75,8 @@ export const LeaveApply: React.FC = () => {
 
   return (
     <div>
-      <Title level={4}>申请请假</Title>
-      
+      <Title level={4}>Apply for Leave</Title>
+
       <Row gutter={[24, 24]}>
         <Col xs={24} lg={16}>
           <Card>
@@ -88,30 +88,30 @@ export const LeaveApply: React.FC = () => {
             >
               <Form.Item
                 name="leaveType"
-                label="请假类型"
-                rules={[{ required: true, message: '请选择请假类型' }]}
+                label="Leave Type"
+                rules={[{ required: true, message: 'Please select leave type' }]}
               >
                 <Radio.Group onChange={(e) => setLeaveType(e.target.value)}>
-                  <Radio.Button value="annual">年假</Radio.Button>
-                  <Radio.Button value="sick">病假</Radio.Button>
-                  <Radio.Button value="marriage">婚假</Radio.Button>
-                  <Radio.Button value="maternity">产假</Radio.Button>
-                  <Radio.Button value="paternity">陪产假</Radio.Button>
-                  <Radio.Button value="compassionate">恩恤假</Radio.Button>
-                  <Radio.Button value="unpaid">无薪假</Radio.Button>
-                  <Radio.Button value="other">其他</Radio.Button>
+                  <Radio.Button value="annual">Annual Leave</Radio.Button>
+                  <Radio.Button value="sick">Sick Leave</Radio.Button>
+                  <Radio.Button value="marriage">Marriage Leave</Radio.Button>
+                  <Radio.Button value="maternity">Maternity Leave</Radio.Button>
+                  <Radio.Button value="paternity">Paternity Leave</Radio.Button>
+                  <Radio.Button value="compassionate">Compassionate Leave</Radio.Button>
+                  <Radio.Button value="unpaid">Unpaid Leave</Radio.Button>
+                  <Radio.Button value="other">Other</Radio.Button>
                 </Radio.Group>
               </Form.Item>
 
               <Form.Item
                 name="dateRange"
-                label="请假时间"
-                rules={[{ required: true, message: '请选择请假时间' }]}
+                label="Leave Period"
+                rules={[{ required: true, message: 'Please select leave period' }]}
               >
                 <RangePicker
                   style={{ width: '100%' }}
                   format="YYYY-MM-DD"
-                  placeholder={['开始日期', '结束日期']}
+                  placeholder={['Start Date', 'End Date']}
                   disabledDate={(current) => {
                     if (leaveType !== 'sick') {
                       return current && current < dayjs().startOf('day');
@@ -123,29 +123,29 @@ export const LeaveApply: React.FC = () => {
 
               <Form.Item
                 name="days"
-                label="请假天数"
-                rules={[{ required: true, message: '请输入请假天数' }]}
+                label="Leave Days"
+                rules={[{ required: true, message: 'Please enter leave days' }]}
               >
                 <InputNumber
                   min={0.5}
                   max={30}
                   step={0.5}
                   style={{ width: '100%' }}
-                  placeholder="请输入天数"
+                  placeholder="Enter number of days"
                 />
               </Form.Item>
 
               <Form.Item
                 name="reason"
-                label="请假原因"
+                label="Reason"
                 rules={[
-                  { required: true, message: '请输入请假原因' },
-                  { min: 5, message: '至少输入5个字符' },
+                  { required: true, message: 'Please enter reason' },
+                  { min: 5, message: 'At least 5 characters required' },
                 ]}
               >
                 <TextArea
                   rows={4}
-                  placeholder="请详细说明请假原因..."
+                  placeholder="Please describe your leave reason in detail..."
                   showCount
                   maxLength={500}
                 />
@@ -154,33 +154,33 @@ export const LeaveApply: React.FC = () => {
               {(leaveType === 'sick' || leaveType === 'maternity' || leaveType === 'paternity') && (
                 <Form.Item
                   name="attachments"
-                  label="证明材料"
-                  extra={`${leaveType === 'sick' ? '病假' : leaveType === 'maternity' ? '产假' : '陪产假'}需要提供相关证明材料，支持PDF、JPG、PNG格式`}
+                  label="Supporting Documents"
+                  extra={`${leaveType === 'sick' ? 'Sick Leave' : leaveType === 'maternity' ? 'Maternity Leave' : 'Paternity Leave'} requires supporting documents. Supported formats: PDF, JPG, PNG`}
                 >
                   <Upload
                     accept=".pdf,.jpg,.jpeg,.png"
                     maxCount={3}
                     beforeUpload={() => false}
                   >
-                    <Button icon={<UploadOutlined />}>上传附件</Button>
+                    <Button icon={<UploadOutlined />}>Upload Attachment</Button>
                   </Upload>
                 </Form.Item>
               )}
 
               <Form.Item
                 name="contactInfo"
-                label="紧急联系人/电话"
+                label="Emergency Contact/Phone"
               >
-                <Input placeholder="休假期间的联系方式" />
+                <Input placeholder="Contact information during leave" />
               </Form.Item>
 
               <Form.Item>
                 <Space size="large">
                   <Button type="primary" htmlType="submit" loading={submitting} size="large">
-                    提交申请
+                    Submit Application
                   </Button>
                   <Button onClick={() => form.resetFields()} size="large">
-                    重置
+                    Reset
                   </Button>
                 </Space>
               </Form.Item>
@@ -189,26 +189,26 @@ export const LeaveApply: React.FC = () => {
         </Col>
 
         <Col xs={24} lg={8}>
-          <Card title="假期余额" style={{ marginBottom: 24 }}>
+          <Card title="Leave Balance" style={{ marginBottom: 24 }}>
             <Space direction="vertical" style={{ width: '100%' }} size="large">
               <div>
-                <Text type="secondary">剩余可用天数</Text>
+                <Text type="secondary">Remaining Available Days</Text>
                 <div style={{ fontSize: 32, fontWeight: 'bold', color: '#52c41a' }}>
-                  {balance ? balance.remainingDays : '-'} 天
+                  {balance ? balance.remainingDays : '-'} days
                 </div>
                 <Text type="secondary" style={{ fontSize: 12 }}>
-                  总额度 {balance ? balance.totalDays : '-'} 天 · 已用 {balance ? balance.usedDays : '-'} 天
+                  Total: {balance ? balance.totalDays : '-'} days · Used: {balance ? balance.usedDays : '-'} days
                 </Text>
               </div>
             </Space>
           </Card>
 
-          <Card title="注意事项">
+          <Card title="Notes">
             <ul style={{ paddingLeft: 20, color: '#666' }}>
-              <li>年假需提前3天申请</li>
-              <li>病假可事后补交证明</li>
-              <li>请假期间请保持通讯畅通</li>
-              <li>紧急情况请联系HR</li>
+              <li>Annual leave must be applied 3 days in advance</li>
+              <li>Sick leave can be supplemented with proof afterwards</li>
+              <li>Please keep communication open during leave</li>
+              <li>Contact HR for emergencies</li>
             </ul>
           </Card>
         </Col>

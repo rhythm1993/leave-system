@@ -33,7 +33,7 @@ export const MyApplications: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
 
-  // 获取申请列表
+  // Fetch application list
   const fetchApplications = async (page = 1, pageSize = 10) => {
     setLoading(true);
     try {
@@ -42,7 +42,7 @@ export const MyApplications: React.FC = () => {
         page,
         size: pageSize,
       };
-      
+
       if (filterStatus !== 'all') {
         params.status = filterStatus;
       }
@@ -57,7 +57,7 @@ export const MyApplications: React.FC = () => {
         });
       }
     } catch (error) {
-      message.error('获取申请列表失败');
+      message.error('Failed to get application list');
     } finally {
       setLoading(false);
     }
@@ -69,12 +69,12 @@ export const MyApplications: React.FC = () => {
 
   const getStatusTag = (status: string) => {
     const config: Record<string, { color: string; text: string }> = {
-      pending_endorsement: { color: 'processing', text: '待背书' },
-      endorsed: { color: 'warning', text: '待HR审批' },
-      pending_hr_approval: { color: 'warning', text: '待HR审批' },
-      approved: { color: 'success', text: '已通过' },
-      rejected: { color: 'error', text: '已拒绝' },
-      cancelled: { color: 'default', text: '已取消' },
+      pending_endorsement: { color: 'processing', text: 'Pending Endorsement' },
+      endorsed: { color: 'warning', text: 'Pending HR Approval' },
+      pending_hr_approval: { color: 'warning', text: 'Pending HR Approval' },
+      approved: { color: 'success', text: 'Approved' },
+      rejected: { color: 'error', text: 'Rejected' },
+      cancelled: { color: 'default', text: 'Cancelled' },
     };
     const { color, text } = config[status] || { color: 'default', text: status };
     return <Tag color={color}>{text}</Tag>;
@@ -82,14 +82,14 @@ export const MyApplications: React.FC = () => {
 
   const getLeaveTypeText = (type: string) => {
     const types: Record<string, string> = {
-      annual: '年假',
-      sick: '病假',
-      marriage: '婚假',
-      maternity: '产假',
-      paternity: '陪产假',
-      compassionate: '恩恤假',
-      unpaid: '无薪假',
-      other: '其他',
+      annual: 'Annual Leave',
+      sick: 'Sick Leave',
+      marriage: 'Marriage Leave',
+      maternity: 'Maternity Leave',
+      paternity: 'Paternity Leave',
+      compassionate: 'Compassionate Leave',
+      unpaid: 'Unpaid Leave',
+      other: 'Other',
     };
     return types[type] || type;
   };
@@ -101,17 +101,17 @@ export const MyApplications: React.FC = () => {
 
   const handleCancel = (record: any) => {
     Modal.confirm({
-      title: '确认取消',
-      content: `确定要取消申请 "${record.applicationNo}" 吗？`,
+      title: 'Confirm Cancellation',
+      content: `Are you sure you want to cancel application "${record.applicationNo}"?`,
       onOk: async () => {
         try {
-          const response: any = await leaveApi.cancelApplication(record.id, '用户主动取消');
+          const response: any = await leaveApi.cancelApplication(record.id, 'User initiated cancellation');
           if (response.code === 200) {
-            message.success('申请已取消');
+            message.success('Application cancelled');
             fetchApplications(pagination.current);
           }
         } catch (error: any) {
-          message.error(error.response?.data?.message || '取消失败');
+          message.error(error.response?.data?.message || 'Cancellation failed');
         }
       },
     });
@@ -119,40 +119,40 @@ export const MyApplications: React.FC = () => {
 
   const columns = [
     {
-      title: '申请编号',
+      title: 'Application No.',
       dataIndex: 'applicationNo',
       key: 'applicationNo',
     },
     {
-      title: '请假类型',
+      title: 'Leave Type',
       dataIndex: 'leaveType',
       key: 'leaveType',
       render: getLeaveTypeText,
     },
     {
-      title: '时间段',
+      title: 'Period',
       key: 'dateRange',
-      render: (_: any, record: any) => `${record.startDate} 至 ${record.endDate}`,
+      render: (_: any, record: any) => `${record.startDate} to ${record.endDate}`,
     },
     {
-      title: '天数',
+      title: 'Days',
       dataIndex: 'days',
       key: 'days',
     },
     {
-      title: '状态',
+      title: 'Status',
       dataIndex: 'status',
       key: 'status',
       render: getStatusTag,
     },
     {
-      title: '提交时间',
+      title: 'Submitted At',
       dataIndex: 'createdAt',
       key: 'createdAt',
       render: (date: string) => dayjs(date).format('YYYY-MM-DD HH:mm'),
     },
     {
-      title: '操作',
+      title: 'Actions',
       key: 'action',
       render: (_: any, record: any) => (
         <Space>
@@ -161,7 +161,7 @@ export const MyApplications: React.FC = () => {
             size="small"
             onClick={() => handleViewDetail(record)}
           >
-            查看
+            View
           </Button>
           {(record.status === 'pending_endorsement') && (
             <Button
@@ -169,7 +169,7 @@ export const MyApplications: React.FC = () => {
               size="small"
               type="primary"
             >
-              编辑
+              Edit
             </Button>
           )}
           {(record.status === 'pending_endorsement' || record.status === 'endorsed') && (
@@ -179,7 +179,7 @@ export const MyApplications: React.FC = () => {
               danger
               onClick={() => handleCancel(record)}
             >
-              取消
+              Cancel
             </Button>
           )}
         </Space>
@@ -191,22 +191,22 @@ export const MyApplications: React.FC = () => {
     <div>
       <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
         <Col>
-          <Title level={4}>我的申请</Title>
+          <Title level={4}>My Applications</Title>
         </Col>
         <Col>
           <Space>
             <Select
               value={filterStatus}
               onChange={setFilterStatus}
-              style={{ width: 120 }}
-              placeholder="筛选状态"
+              style={{ width: 160 }}
+              placeholder="Filter by status"
             >
-              <Option value="all">全部</Option>
-              <Option value="pending_endorsement">待背书</Option>
-              <Option value="endorsed">待HR审批</Option>
-              <Option value="approved">已通过</Option>
-              <Option value="rejected">已拒绝</Option>
-              <Option value="cancelled">已取消</Option>
+              <Option value="all">All</Option>
+              <Option value="pending_endorsement">Pending Endorsement</Option>
+              <Option value="endorsed">Pending HR Approval</Option>
+              <Option value="approved">Approved</Option>
+              <Option value="rejected">Rejected</Option>
+              <Option value="cancelled">Cancelled</Option>
             </Select>
             <RangePicker style={{ width: 220 }} />
           </Space>
@@ -227,26 +227,26 @@ export const MyApplications: React.FC = () => {
       </Card>
 
       <Modal
-        title="申请详情"
+        title="Application Details"
         open={isDetailModalVisible}
         onCancel={() => setIsDetailModalVisible(false)}
         footer={[
           <Button key="close" onClick={() => setIsDetailModalVisible(false)}>
-            关闭
+            Close
           </Button>,
         ]}
         width={600}
       >
         {currentRecord && (
           <div style={{ padding: '20px 0' }}>
-            <p><strong>申请编号：</strong>{currentRecord.applicationNo}</p>
-            <p><strong>请假类型：</strong>{getLeaveTypeText(currentRecord.leaveType)}</p>
-            <p><strong>开始日期：</strong>{currentRecord.startDate}</p>
-            <p><strong>结束日期：</strong>{currentRecord.endDate}</p>
-            <p><strong>请假天数：</strong>{currentRecord.days} 天</p>
-            <p><strong>请假原因：</strong>{currentRecord.reason}</p>
-            <p><strong>当前状态：</strong>{getStatusTag(currentRecord.status)}</p>
-            <p><strong>提交时间：</strong>{dayjs(currentRecord.createdAt).format('YYYY-MM-DD HH:mm:ss')}</p>
+            <p><strong>Application No.:</strong>{currentRecord.applicationNo}</p>
+            <p><strong>Leave Type:</strong>{getLeaveTypeText(currentRecord.leaveType)}</p>
+            <p><strong>Start Date:</strong>{currentRecord.startDate}</p>
+            <p><strong>End Date:</strong>{currentRecord.endDate}</p>
+            <p><strong>Leave Days:</strong>{currentRecord.days} days</p>
+            <p><strong>Reason:</strong>{currentRecord.reason}</p>
+            <p><strong>Current Status:</strong>{getStatusTag(currentRecord.status)}</p>
+            <p><strong>Submitted At:</strong>{dayjs(currentRecord.createdAt).format('YYYY-MM-DD HH:mm:ss')}</p>
           </div>
         )}
       </Modal>

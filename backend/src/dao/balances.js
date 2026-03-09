@@ -5,39 +5,40 @@ export const BalanceDAO = {
   // 获取用户余额
   findByUserId: (userId, year) => {
     const db = getDb();
-    const sql = `
-      SELECT lb.*, u.full_name, u.department
-      FROM leave_balances lb
-      LEFT JOIN users u ON lb.user_id = u.id
-      WHERE lb.user_id = ? AND lb.year = ?
-    `;
-    return db.prepare(sql).get(userId, year);
+    const balance = db.leave_balances.find(b => b.user_id === userId && b.year === year);
+    if (!balance) return null;
+
+    const user = db.users.find(u => u.id === balance.user_id);
+    return {
+      ...balance,
+      full_name: user?.full_name,
+      department: user?.department,
+    };
   },
 
   // 获取所有余额
   findAll: (options = {}) => {
     const db = getDb();
-    let sql = `
-      SELECT lb.*, u.full_name, u.department
-      FROM leave_balances lb
-      LEFT JOIN users u ON lb.user_id = u.id
-      WHERE 1=1
-    `;
-    const params = [];
+    let balances = db.leave_balances.map(b => {
+      const user = db.users.find(u => u.id === b.user_id);
+      return {
+        ...b,
+        full_name: user?.full_name,
+        department: user?.department,
+      };
+    });
 
     if (options.year) {
-      sql += ` AND lb.year = ?`;
-      params.push(options.year);
+      balances = balances.filter(b => b.year === options.year);
     }
 
     if (options.userId) {
-      sql += ` AND lb.user_id = ?`;
-      params.push(options.userId);
+      balances = balances.filter(b => b.user_id === options.userId);
     }
 
-    sql += ` ORDER BY lb.created_at DESC`;
+    balances.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-    return db.prepare(sql).all(params);
+    return balances;
   },
 
   // 创建余额记录
@@ -45,66 +46,64 @@ export const BalanceDAO = {
     const db = getDb();
     const id = uuidv4();
     const currentYear = data.year || new Date().getFullYear();
-    
-    const sql = `
-      INSERT INTO leave_balances (id, user_id, year, total_days, used_days, pending_days)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `;
-    
-    const params = [
-      id,
-      data.userId,
-      currentYear,
-      data.totalDays || 20,
-      data.usedDays || 0,
-      data.pendingDays || 0,
-    ];
 
-    try {
-      db.prepare(sql).run(params);
-      return BalanceDAO.findByUserId(data.userId, currentYear);
-    } catch (error) {
-      if (error.message.includes('UNIQUE constraint failed')) {
-        throw new Error('该用户本年度已存在余额记录');
-      }
-      throw error;
+    const existing = db.leave_balances.find(b => b.user_id === data.userId && b.year === currentYear);
+    if (existing) {
+      throw new Error('该用户本年度已存在余额记录');
     }
+
+    const newBalance = {
+      id,
+      user_id: data.userId,
+      year: currentYear,
+      total_days: data.totalDays || 20,
+      used_days: data.usedDays || 0,
+      pending_days: data.pendingDays || 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    db.leave_balances.push(newBalance);
+
+    const user = db.users.find(u => u.id === newBalance.user_id);
+    return {
+      ...newBalance,
+      full_name: user?.full_name,
+      department: user?.department,
+    };
   },
 
   // 更新已用天数
   updateUsedDays: (userId, year, days) => {
     const db = getDb();
-    const sql = `
-      UPDATE leave_balances 
-      SET used_days = used_days + ?, updated_at = CURRENT_TIMESTAMP
-      WHERE user_id = ? AND year = ?
-    `;
-    const result = db.prepare(sql).run(days, userId, year);
-    return result.changes > 0;
+    const index = db.leave_balances.findIndex(b => b.user_id === userId && b.year === year);
+    if (index === -1) return false;
+
+    db.leave_balances[index].used_days += days;
+    db.leave_balances[index].updated_at = new Date().toISOString();
+    return true;
   },
 
   // 更新待审批天数
   updatePendingDays: (userId, year, days) => {
     const db = getDb();
-    const sql = `
-      UPDATE leave_balances 
-      SET pending_days = pending_days + ?, updated_at = CURRENT_TIMESTAMP
-      WHERE user_id = ? AND year = ?
-    `;
-    const result = db.prepare(sql).run(days, userId, year);
-    return result.changes > 0;
+    const index = db.leave_balances.findIndex(b => b.user_id === userId && b.year === year);
+    if (index === -1) return false;
+
+    db.leave_balances[index].pending_days += days;
+    db.leave_balances[index].updated_at = new Date().toISOString();
+    return true;
   },
 
   // 调整总额度
   adjustTotalDays: (userId, year, days) => {
     const db = getDb();
-    const sql = `
-      UPDATE leave_balances 
-      SET total_days = total_days + ?, updated_at = CURRENT_TIMESTAMP
-      WHERE user_id = ? AND year = ?
-    `;
-    const result = db.prepare(sql).run(days, userId, year);
-    return result.changes > 0;
+    const index = db.leave_balances.findIndex(b => b.user_id === userId && b.year === year);
+    if (index === -1) return false;
+
+    db.leave_balances[index].total_days += days;
+    db.leave_balances[index].updated_at = new Date().toISOString();
+    return true;
   },
 
   // 获取或创建余额

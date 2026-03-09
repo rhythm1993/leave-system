@@ -15,11 +15,11 @@ import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
 
-// 模拟用户数据
+// Mock user data
 const mockUser = {
   id: 'user-001',
   username: 'admin',
-  fullName: '系统管理员',
+  fullName: 'System Administrator',
   role: 'SYSTEM_ADMIN',
 };
 
@@ -31,37 +31,37 @@ export const App: React.FC = () => {
     {
       key: '/dashboard',
       icon: <DashboardOutlined />,
-      label: '仪表板',
+      label: 'Dashboard',
     },
     {
       key: '/leave',
       icon: <FileTextOutlined />,
-      label: '请假管理',
+      label: 'Leave Management',
       children: [
-        { key: '/leave/apply', label: '申请请假' },
-        { key: '/leave/my-applications', label: '我的申请' },
-        { key: '/leave/pending-approval', label: '待我审批' },
+        { key: '/leave/apply', label: 'Apply for Leave' },
+        { key: '/leave/my-applications', label: 'My Applications' },
+        { key: '/leave/pending-approval', label: 'Pending Approval' },
       ],
     },
     {
       key: '/calendar',
       icon: <CalendarOutlined />,
-      label: '请假日历',
+      label: 'Leave Calendar',
     },
     ...(mockUser.role === 'SYSTEM_ADMIN' || mockUser.role === 'HR'
       ? [
           {
             key: '/users',
             icon: <TeamOutlined />,
-            label: '用户管理',
+            label: 'User Management',
           },
         ]
       : []),
-    // 系统设置暂不开放（MVP2阶段实现）
+    // System settings not available in MVP1
     // {
     //   key: '/settings',
     //   icon: <SettingOutlined />,
-    //   label: '系统设置',
+    //   label: 'Settings',
     // },
   ];
 
@@ -69,12 +69,12 @@ export const App: React.FC = () => {
     {
       key: 'profile',
       icon: <UserOutlined />,
-      label: '个人资料',
+      label: 'My Profile',
     },
     {
       key: 'logout',
       icon: <LogoutOutlined />,
-      label: '退出登录',
+      label: 'Logout',
       danger: true,
     },
   ];
@@ -126,7 +126,7 @@ export const App: React.FC = () => {
               L
             </div>
             <Text strong style={{ fontSize: 18 }}>
-              请假系统
+              Leave System
             </Text>
           </Space>
         </div>

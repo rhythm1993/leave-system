@@ -13,123 +13,128 @@ export const LeaveApplicationDAO = {
   // 获取所有申请
   findAll: (options = {}) => {
     const db = getDb();
-    let sql = `
-      SELECT la.*, u.full_name as applicant_name, u.department
-      FROM leave_applications la
-      LEFT JOIN users u ON la.applicant_id = u.id
-      WHERE 1=1
-    `;
-    const params = [];
+    let applications = db.leave_applications.map(app => {
+      const user = db.users.find(u => u.id === app.applicant_id);
+      return {
+        ...app,
+        applicant_name: user?.full_name,
+        department: user?.department,
+      };
+    });
 
     if (options.applicantId) {
-      sql += ` AND la.applicant_id = ?`;
-      params.push(options.applicantId);
+      applications = applications.filter(a => a.applicant_id === options.applicantId);
     }
 
     if (options.status) {
-      sql += ` AND la.status = ?`;
-      params.push(options.status);
+      applications = applications.filter(a => a.status === options.status);
     }
 
     if (options.leaveType) {
-      sql += ` AND la.leave_type = ?`;
-      params.push(options.leaveType);
+      applications = applications.filter(a => a.leave_type === options.leaveType);
     }
 
-    sql += ` ORDER BY la.created_at DESC`;
+    applications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     if (options.limit) {
-      sql += ` LIMIT ? OFFSET ?`;
-      params.push(options.limit, options.offset || 0);
+      const offset = options.offset || 0;
+      applications = applications.slice(offset, offset + options.limit);
     }
 
-    return db.prepare(sql).all(params);
+    return applications;
   },
 
   // 统计总数
   count: (options = {}) => {
     const db = getDb();
-    let sql = 'SELECT COUNT(*) as total FROM leave_applications WHERE 1=1';
-    const params = [];
+    let applications = [...db.leave_applications];
 
     if (options.applicantId) {
-      sql += ` AND applicant_id = ?`;
-      params.push(options.applicantId);
+      applications = applications.filter(a => a.applicant_id === options.applicantId);
     }
 
     if (options.status) {
-      sql += ` AND status = ?`;
-      params.push(options.status);
+      applications = applications.filter(a => a.status === options.status);
     }
 
-    const result = db.prepare(sql).get(params);
-    return result.total;
+    return applications.length;
   },
 
   // 根据ID查找
   findById: (id) => {
     const db = getDb();
-    const sql = `
-      SELECT la.*, u.full_name as applicant_name, u.department
-      FROM leave_applications la
-      LEFT JOIN users u ON la.applicant_id = u.id
-      WHERE la.id = ?
-    `;
-    return db.prepare(sql).get(id);
+    const app = db.leave_applications.find(a => a.id === id);
+    if (!app) return null;
+
+    const user = db.users.find(u => u.id === app.applicant_id);
+    return {
+      ...app,
+      applicant_name: user?.full_name,
+      department: user?.department,
+    };
   },
 
   // 创建申请
   create: (data) => {
     const db = getDb();
     const id = uuidv4();
-    
-    const sql = `
-      INSERT INTO leave_applications 
-      (id, application_no, applicant_id, leave_type, start_date, end_date, days, reason, contact_info, submitted_by)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-    
-    const params = [
-      id,
-      generateApplicationNo(),
-      data.applicantId,
-      data.leaveType,
-      data.startDate,
-      data.endDate,
-      data.days,
-      data.reason,
-      data.contactInfo || null,
-      data.submittedBy || data.applicantId,
-    ];
 
-    db.prepare(sql).run(params);
-    return LeaveApplicationDAO.findById(id);
+    const newApp = {
+      id,
+      application_no: generateApplicationNo(),
+      applicant_id: data.applicantId,
+      leave_type: data.leaveType,
+      start_date: data.startDate,
+      end_date: data.endDate,
+      days: data.days,
+      reason: data.reason,
+      contact_info: data.contactInfo || null,
+      attachment_urls: null,
+      status: 'pending_endorsement',
+      submitted_by: data.submittedBy || data.applicantId,
+      is_proxy_apply: false,
+      cancelled_by: null,
+      cancelled_at: null,
+      cancel_reason: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    db.leave_applications.push(newApp);
+
+    const user = db.users.find(u => u.id === newApp.applicant_id);
+    return {
+      ...newApp,
+      applicant_name: user?.full_name,
+      department: user?.department,
+    };
   },
 
   // 更新状态
   updateStatus: (id, status, additionalData = {}) => {
     const db = getDb();
-    
-    const allowedFields = ['status', 'cancelled_by', 'cancelled_at', 'cancel_reason'];
-    const updates = ['updated_at = CURRENT_TIMESTAMP'];
-    const params = [];
+    const index = db.leave_applications.findIndex(a => a.id === id);
+    if (index === -1) return null;
 
-    updates.push(`status = ?`);
-    params.push(status);
+    db.leave_applications[index].status = status;
+    db.leave_applications[index].updated_at = new Date().toISOString();
 
-    for (const [key, value] of Object.entries(additionalData)) {
-      const dbField = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
-      if (allowedFields.includes(dbField)) {
-        updates.push(`${dbField} = ?`);
-        params.push(value);
-      }
+    if (additionalData.cancelledBy !== undefined) {
+      db.leave_applications[index].cancelled_by = additionalData.cancelledBy;
+    }
+    if (additionalData.cancelledAt !== undefined) {
+      db.leave_applications[index].cancelled_at = additionalData.cancelledAt;
+    }
+    if (additionalData.cancelReason !== undefined) {
+      db.leave_applications[index].cancel_reason = additionalData.cancelReason;
     }
 
-    params.push(id);
-    const sql = `UPDATE leave_applications SET ${updates.join(', ')} WHERE id = ?`;
-    
-    db.prepare(sql).run(params);
-    return LeaveApplicationDAO.findById(id);
+    const user = db.users.find(u => u.id === db.leave_applications[index].applicant_id);
+    return {
+      ...db.leave_applications[index],
+      applicant_name: user?.full_name,
+      department: user?.department,
+    };
   },
 
   // 取消申请
