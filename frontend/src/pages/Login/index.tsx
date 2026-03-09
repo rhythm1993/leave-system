@@ -3,7 +3,7 @@ import { Card, Form, Input, Button, Typography, Space, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '../../store';
-import { mockUsers } from '../../mock/data';
+import { authApi } from '../../services/api';
 
 const { Title, Text } = Typography;
 
@@ -14,22 +14,21 @@ export const Login: React.FC = () => {
 
   const handleSubmit = async (values: { username: string; password: string }) => {
     setLoading(true);
-
-    // Simulate login verification
-    setTimeout(() => {
-      const user = mockUsers.find(
-        (u) => u.username === values.username && u.password === values.password
-      );
-
-      if (user) {
-        setUser(user);
+    try {
+      const response: any = await authApi.login(values.username, values.password);
+      if (response.code === 200) {
+        localStorage.setItem('token', response.data.token);
+        setUser(response.data.user);
         message.success('Login successful!');
         navigate('/dashboard');
       } else {
-        message.error('Invalid username or password');
+        message.error(response.message || 'Login failed');
       }
+    } catch (error: any) {
+      message.error(error.response?.data?.message || 'Invalid username or password');
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
   return (
