@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  username      String   @unique
+  password_hash String
+  full_name     String
+  email         String   @unique
+  phone         String?
+  department    String?
+  role          Role     @default(STAFF)
+  status        Status   @default(active)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  leave_applications LeaveApplication[]
+  leave_balances     LeaveBalance[]
+  approval_logs      ApprovalLog[]
+
+  @@map("users")
+}
+
+model LeaveBalance {
+  id            String   @id @default(uuid())
+  user_id       String
+  year          Int
+  total_days    Float    @default(20)
+  used_days     Float    @default(0)
+  pending_days  Float    @default(0)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, year])
+  @@map("leave_balances")
+}
+
+model LeaveApplication {
+  id              String            @id @default(uuid())
+  application_no  String            @unique
+  applicant_id    String
+  leave_type      LeaveType
+  start_date      String
+  end_date        String
+  days            Float
+  reason          String
+  contact_info    String?
+  attachment_urls String?
+  status          ApplicationStatus @default(pending_endorsement)
+  submitted_by    String?
+  is_proxy_apply  Boolean           @default(false)
+  cancelled_by    String?
+  cancelled_at    DateTime?
+  cancel_reason   String?
+  created_at      DateTime          @default(now())
+  updated_at      DateTime          @updatedAt
+
+  applicant     User          @relation(fields: [applicant_id], references: [id])
+  approval_logs ApprovalLog[]
+
+  @@map("leave_applications")
+}
+
+model ApprovalLog {
+  id                   String @id @default(uuid())
+  leave_application_id String
+  approver_id          String
+  approval_type        String
+  action               String
+  comment              String?
+  created_at           DateTime @default(now())
+
+  leave_application LeaveApplication @relation(fields: [leave_application_id], references: [id], onDelete: Cascade)
+  approver          User             @relation(fields: [approver_id], references: [id])
+
+  @@map("approval_logs")
+}
+
+enum Role {
+  SYSTEM_ADMIN
+  HR
+  STAFF
+}
+
+enum Status {
+  active
+  inactive
+}
+
+enum LeaveType {
+  annual
+  sick
+  marriage
+  maternity
+  paternity
+  compassionate
+  unpaid
+  other
+}
+
+enum ApplicationStatus {
+  pending_endorsement
+  endorsed
+  pending_hr_approval
+  approved
+  rejected
+  cancelled
+}
