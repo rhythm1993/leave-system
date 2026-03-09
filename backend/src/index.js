@@ -32,6 +32,23 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// API 根路径 - 显示可用接口列表
+app.get('/api/v1/', (req, res) => {
+  res.json({
+    message: 'Leave System API v1',
+    version: '1.0.0',
+    endpoints: {
+      auth: '/api/v1/auth/login',
+      users: '/api/v1/users',
+      leaves: '/api/v1/leave-applications',
+      balances: '/api/v1/balances',
+      calendar: '/api/v1/calendar'
+    },
+    documentation: 'See Swagger UI at /api/v1/docs (if enabled)',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);
