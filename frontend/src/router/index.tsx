@@ -1,13 +1,13 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { App } from '../App';
-import { Login } from '../pages/Login';
-import { Dashboard } from '../pages/Dashboard';
-import { LeaveApply } from '../pages/LeaveApply';
-import { MyApplications } from '../pages/MyApplications';
-import { PendingApproval } from '../pages/PendingApproval';
-import { LeaveCalendar } from '../pages/Calendar';
-import { Users } from '../pages/Users';
-import { Profile } from '../pages/Profile';
+import { Login } from '../pages/login';
+import { Dashboard } from '../pages/dashboard';
+import { LeaveApply } from '../pages/leaveapply';
+import { MyApplications } from '../pages/myapplications';
+import { PendingApproval } from '../pages/pendingapproval';
+import { LeaveCalendar } from '../pages/calendar';
+import { Users } from '../pages/users';
+import { Profile } from '../pages/profile';
 
 export const router = createBrowserRouter([
   {
@@ -42,7 +42,7 @@ export const router = createBrowserRouter([
         path: 'calendar',
         element: <LeaveCalendar />,
       },
-      ...(true // 暂时显示给所有用户，后续根据权限控制
+      ...(true // Show to all users for now, control by permissions later
         ? [
             {
               path: 'users',
@@ -54,7 +54,7 @@ export const router = createBrowserRouter([
         path: 'profile',
         element: <Profile />,
       },
-      // 系统设置 - MVP2阶段实现
+      // System settings - MVP2 phase
       // {
       //   path: 'settings',
       //   element: <Settings />,
