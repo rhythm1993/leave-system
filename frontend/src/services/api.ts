@@ -3,7 +3,7 @@ import axios from 'axios';
 // 创建axios实例
 // 使用相对路径，通过Vite代理转发到后端
 const api = axios.create({
-  baseURL: '/api/v1',
+  baseURL: 'https://nano-leave-system.up.railway.app/api/v1',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
