@@ -32,12 +32,12 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// 错误处理
+// Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({
     code: 500,
-    message: '服务器内部错误',
+    message: 'Internal server error',
     error: process.env.NODE_ENV === 'development' ? err.message : undefined,
   });
 });
